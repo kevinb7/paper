@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="../node_modules/babel/browser-polyfill.js"></script>
+    <script src="../build/paper.js"></script>
+    <script src="../node_modules/rx/dist/rx.lite.min.js"></script>
+</head>
+<body>
+
+</body>
+</html>
+<script>
+
+    document.body.style.height = "100%";
+    document.body.style.overflow = "hidden";
+    document.body.style.margin = "0";
+
+    document.documentElement.style.height = "100%";
+    document.documentElement.style.overflow = "hidden";
+
+    var canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+
+    var ctx = canvas.getContext('2d');
+
+    var rect1 = new paper.Rect(100,100,100,100);
+    var rect2 = new paper.Rect(200,300,100,100);
+    rect2.fill = 'green';
+    var scene = new paper.Table();
+
+    scene.children.push(rect1, rect2);
+    scene.draw(ctx);
+
+    var draw = function() {
+        scene.draw(ctx);
+        requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    var downs = Rx.Observable.fromEvent(document, "mousedown");
+    var moves = Rx.Observable.fromEvent(document, "mousemove");
+    var ups = Rx.Observable.fromEvent(document, "mouseup");
+
+    downs.subscribe(function (down) {
+        var lastX = down.pageX;
+        var lastY = down.pageY;
+
+        moves.takeUntil(ups).subscribe(function (move) {
+            var dx = move.pageX - lastX;
+            var dy = move.pageY - lastY;
+
+            scene.translate(dx, dy);
+
+            lastX = move.pageX;
+            lastY = move.pageY;
+        });
+    });
+
+</script>
