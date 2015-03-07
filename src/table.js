@@ -22,6 +22,19 @@ class Table {
     translate(dx, dy) {
         glMatrix.mat2d.translate(this.transform, this.transform, [dx, dy]);
     }
+
+    add(child) {
+        child.parent = this;
+        this.children.push(child);
+    }
+
+    hitTest(x, y) {
+        return this.children.filter(child => {
+            var inverse = glMatrix.mat2d.invert([], child.transform);
+            var vec = glMatrix.vec2.transformMat2d([], [x, y], inverse);
+            return child.contains(...vec);
+        });
+    }
 }
 
 export default Table;

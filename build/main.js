@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.paper = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/kevin/paper/node_modules/gl-matrix/dist/gl-matrix.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/kevin/paper/node_modules/gl-matrix/dist/gl-matrix.js":[function(require,module,exports){
 /**
  * @fileoverview gl-matrix - High performance matrix and vector operations
  * @author Brandon Jones
@@ -3871,180 +3871,159 @@ if(typeof(exports) !== 'undefined') {
   })(shim.exports);
 })();
 
-},{}],"/Users/kevin/paper/src/paper.js":[function(require,module,exports){
+},{}],"/Users/kevin/paper/src/main.js":[function(require,module,exports){
 "use strict";
 
 var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
 
-var Rect = _interopRequire(require("./rect"));
-
-var Table = _interopRequire(require("./table"));
-
-exports.Rect = Rect;
-exports.Table = Table;
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-},{"./rect":"/Users/kevin/paper/src/rect.js","./table":"/Users/kevin/paper/src/table.js"}],"/Users/kevin/paper/src/rect.js":[function(require,module,exports){
-"use strict";
-
-var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) { _arr.push(_step.value); if (i && _arr.length === i) break; } return _arr; } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } };
 
 var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
 
-var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
 var glMatrix = _interopRequire(require("gl-matrix"));
 
-var Rect = (function () {
-    function Rect(x, y, width, height) {
-        _classCallCheck(this, Rect);
+document.body.style.height = "100%";
+document.body.style.overflow = "hidden";
+document.body.style.margin = "0";
 
-        var tx = x + width / 2;
-        var ty = y + height / 2;
-        Object.assign(this, { width: width, height: height });
+document.documentElement.style.height = "100%";
+document.documentElement.style.overflow = "hidden";
 
-        // adjust it so that internally the centroid is always at [0, 0]
-        this.x = x - tx;
-        this.y = y - ty;
-        this.transform = [];
-        glMatrix.mat2d.identity(this.transform);
-        glMatrix.mat2d.translate(this.transform, this.transform, [tx, ty]);
+var canvas = document.createElement("canvas");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+document.body.appendChild(canvas);
 
-        // default color
-        this.fill = "blue";
-    }
+var ctx = canvas.getContext("2d");
 
-    _prototypeProperties(Rect, null, {
-        draw: {
+var rect1 = new paper.Rect(100, 100, 200, 200);
+var rect2 = new paper.Rect(200, 300, 200, 200);
+rect2.fill = "green";
+var table = new paper.Table();
 
-            /**
-             *
-             * @param {CanvasRenderingContext2D} ctx
-             */
+table.add(rect1);
+table.add(rect2);
 
-            value: function draw(ctx) {
-                ctx.save(); // abstract this into a base class?
-                ctx.fillStyle = this.fill;
-                ctx.transform.apply(ctx, _toConsumableArray(this.transform));
-                ctx.fillRect(this.x, this.y, this.width, this.height);
+Number.prototype.toRadians = function () {
+    return Math.PI * this / 180;
+};
 
-                // TODO: pull this out into it's own function
-                ctx.fillStyle = "black";
-                ctx.beginPath();
-                // centroid is always at [0, 0]
-                ctx.arc(0, 0, 5, 0, 2 * Math.PI, false);
-                ctx.fill();
+var angle = 20;
+console.log(glMatrix.mat2d.identity([]));
 
-                ctx.restore();
-            },
-            writable: true,
-            configurable: true
-        },
-        centroid: {
-            get: function () {
-                return glMatrix.vec2.transformMat2d([], [this.x + this.width / 2, this.y + this.height / 2], this.transform);
-            },
-            configurable: true
-        },
-        translate: {
-            value: function translate(dx, dy) {
-                glMatrix.mat2d.translate(this.transform, this.transform, [dx, dy]);
-            },
-            writable: true,
-            configurable: true
-        },
-        contains: {
-            value: function contains(x, y) {
-                return x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height;
-            },
-            writable: true,
-            configurable: true
-        }
-    });
+function rotateAroundPoint(point, angle) {
+    var _point = _slicedToArray(point, 2);
 
-    return Rect;
-})();
+    var tx = _point[0];
+    var ty = _point[1];
 
-module.exports = Rect;
+    var rot = glMatrix.mat2d.rotate([], glMatrix.mat2d.identity([]), angle);
+    var m = glMatrix.mat2d.identity([]);
+    glMatrix.mat2d.translate(m, m, [-tx, -ty]);
+    glMatrix.mat2d.mul(m, rot, m);
+    glMatrix.mat2d.translate(m, m, [tx, ty]);
+    return m;
+}
 
-},{"gl-matrix":"/Users/kevin/paper/node_modules/gl-matrix/dist/gl-matrix.js"}],"/Users/kevin/paper/src/table.js":[function(require,module,exports){
-"use strict";
+[rect1, rect2].forEach(function (rect) {
+    var _rect$transform = _slicedToArray(rect.transform, 6);
 
-var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+    var tx = _rect$transform[4];
+    var ty = _rect$transform[5];
 
-var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
-
-var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var glMatrix = _interopRequire(require("gl-matrix"));
-
-var Table = (function () {
-    function Table() {
-        _classCallCheck(this, Table);
-
-        this.children = []; // linked list?
-        this.transform = glMatrix.mat2d.identity([]);
-    }
-
-    _prototypeProperties(Table, null, {
-        draw: {
-
-            /**
-             *
-             * @param {CanvasRenderingContext2D} ctx
-             */
-
-            value: function draw(ctx) {
-                ctx.fillStyle = "white";
-                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                ctx.save();
-                ctx.transform.apply(ctx, _toConsumableArray(this.transform));
-                this.children.forEach(function (child) {
-                    return child.draw(ctx);
-                });
-                ctx.restore();
-            },
-            writable: true,
-            configurable: true
-        },
-        translate: {
-            value: function translate(dx, dy) {
-                glMatrix.mat2d.translate(this.transform, this.transform, [dx, dy]);
-            },
-            writable: true,
-            configurable: true
-        },
-        add: {
-            value: function add(child) {
-                child.parent = this;
-                this.children.push(child);
-            },
-            writable: true,
-            configurable: true
-        },
-        hitTest: {
-            value: function hitTest(x, y) {
-                return this.children.filter(function (child) {
-                    var inverse = glMatrix.mat2d.invert([], child.transform);
-                    var vec = glMatrix.vec2.transformMat2d([], [x, y], inverse);
-                    return child.contains.apply(child, _toConsumableArray(vec));
-                });
-            },
-            writable: true,
-            configurable: true
-        }
-    });
-
-    return Table;
-})();
-
-module.exports = Table;
-
-},{"gl-matrix":"/Users/kevin/paper/node_modules/gl-matrix/dist/gl-matrix.js"}]},{},["/Users/kevin/paper/src/paper.js"])("/Users/kevin/paper/src/paper.js")
+    var m = rotateAroundPoint([tx, ty], angle.toRadians());
+    glMatrix.mat2d.mul(rect.transform, m, rect.transform);
 });
+
+table.draw(ctx);
+
+var mouse = null;
+var hits = [];
+
+var draw = (function (_draw) {
+    var _drawWrapper = function draw() {
+        return _draw.apply(this, arguments);
+    };
+
+    _drawWrapper.toString = function () {
+        return _draw.toString();
+    };
+
+    return _drawWrapper;
+})(function () {
+    table.draw(ctx);
+
+    if (mouse) {
+        hits.forEach(function (hit) {
+            ctx.beginPath();
+            ctx.moveTo.apply(ctx, _toConsumableArray(mouse));
+            ctx.lineTo.apply(ctx, _toConsumableArray(hit.centroid));
+            ctx.stroke();
+        });
+    }
+
+    requestAnimationFrame(draw);
+});
+
+draw();
+
+var downs = Rx.Observable.fromEvent(document, "mousedown");
+var moves = Rx.Observable.fromEvent(document, "mousemove");
+var ups = Rx.Observable.fromEvent(document, "mouseup");
+
+downs.subscribe(function (down) {
+    mouse = [down.pageX, down.pageY];
+
+    hits = table.hitTest.apply(table, _toConsumableArray(mouse));
+
+    var lastX = down.pageX;
+    var lastY = down.pageY;
+
+    moves.takeUntil(ups).subscribe(function (move) {
+        mouse = [move.pageX, move.pageY];
+
+        var lastMouseToMouse = [move.pageX - lastX, move.pageY - lastY];
+
+        hits.forEach(function (hit) {
+            var centroid;
+
+            //centroid = hit.centroid;
+            //var centroidToLastMouse = [move.pageX - centroid[0], move.pageY - centroid[1]];
+            //
+            //glMatrix.vec2.normalize(centroidToLastMouse, centroidToLastMouse);
+            //var dot = glMatrix.vec2.dot(lastMouseToMouse, centroidToLastMouse);
+            //var proj = glMatrix.vec2.scale([], centroidToLastMouse, dot);
+            //hit.translate(...proj);
+
+            centroid = hit.centroid; // get the updated centroid
+            var a1 = Math.atan2(lastY - centroid[1], lastX - centroid[0]);
+            var a2 = Math.atan2(move.pageY - centroid[1], move.pageX - centroid[0]);
+
+            var _hit$transform = _slicedToArray(hit.transform, 6);
+
+            var tx = _hit$transform[4];
+            var ty = _hit$transform[5];
+
+            var m = rotateAroundPoint([tx, ty], a1 - a2);
+            glMatrix.mat2d.mul(hit.transform, m, hit.transform);
+
+            var prevDist = glMatrix.vec2.distance(centroid, [lastX, lastY]);
+            var currDist = glMatrix.vec2.distance(centroid, [move.pageX, move.pageY]);
+
+            var centroidToMouse = [move.pageX - centroid[0], move.pageY - centroid[1]];
+            glMatrix.vec2.normalize(centroidToMouse, centroidToMouse);
+            var proj = glMatrix.vec2.scale([], centroidToMouse, currDist - prevDist);
+            hit.translate.apply(hit, _toConsumableArray(proj));
+        });
+
+        lastX = move.pageX;
+        lastY = move.pageY;
+    });
+
+    ups.subscribe(function (up) {
+        mouse = null;
+        hits = [];
+    });
+});
+
+},{"gl-matrix":"/Users/kevin/paper/node_modules/gl-matrix/dist/gl-matrix.js"}]},{},["/Users/kevin/paper/src/main.js"]);

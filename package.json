@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify src/paper.js -o build/paper.js -s paper"
+    "build": "browserify src/paper.js -o build/paper.js -s paper",
+    "watch": "watchify src/paper.js -o build/paper.js -s paper",
+    "watch_main": "watchify src/main.js -o build/main.js"
   },
   "author": "kevinb7@gmail.com",
   "license": "MIT",
