@@ -41,8 +41,30 @@ class Rect {
         return glMatrix.vec2.transformMat2d([], [this.x + this.width / 2, this.y + this.height / 2], this.transform);
     }
 
+    get vertices() {
+        return [
+            [-this.width/2, -this.height/2],
+            [this.width/2, -this.height/2],
+            [-this.width/2, this.height/2],
+            [this.width/2, this.height/2]
+        ].map(vec => glMatrix.vec2.transformMat2d([], vec, this.transform));
+    }
+
     translate(dx, dy) {
         glMatrix.mat2d.translate(this.transform, this.transform, [dx, dy]);
+    }
+
+    // rotates around centroid
+    // maybe rename to pivot?
+    rotate(angle) {
+        var [tx, ty] = this.centroid;
+        var rot = glMatrix.mat2d.rotate([], glMatrix.mat2d.identity([]), angle);
+        var m = glMatrix.mat2d.identity([]);
+        glMatrix.mat2d.translate(m, m, [-tx, -ty]);
+        glMatrix.mat2d.mul(m, rot, m);
+        glMatrix.mat2d.translate(m, m, [tx, ty]);
+
+        glMatrix.mat2d.mul(this.transform, m, this.transform);
     }
 
     contains(x, y) {

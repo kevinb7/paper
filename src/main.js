@@ -1,4 +1,5 @@
 import glMatrix from 'gl-matrix';
+import paper from './paper.js';
 
 document.body.style.height = "100%";
 document.body.style.overflow = "hidden";
@@ -16,6 +17,7 @@ var ctx = canvas.getContext('2d');
 
 var rect1 = new paper.Rect(100,100,200,200);
 var rect2 = new paper.Rect(200,300,200,200);
+rect1.fill = 'orange';
 rect2.fill = 'green';
 var table = new paper.Table();
 
@@ -27,23 +29,7 @@ Number.prototype.toRadians = function() {
 };
 
 var angle = 20;
-console.log(glMatrix.mat2d.identity([]));
-
-function rotateAroundPoint(point, angle) {
-    var [tx, ty] = point;
-    var rot = glMatrix.mat2d.rotate([], glMatrix.mat2d.identity([]), angle);
-    var m = glMatrix.mat2d.identity([]);
-    glMatrix.mat2d.translate(m, m, [-tx, -ty]);
-    glMatrix.mat2d.mul(m, rot, m);
-    glMatrix.mat2d.translate(m, m, [tx, ty]);
-    return m;
-}
-
-[rect1, rect2].forEach(rect => {
-    var [  ,  ,  ,  ,  tx, ty] = rect.transform;
-    var m = rotateAroundPoint([tx, ty], angle.toRadians());
-    glMatrix.mat2d.mul(rect.transform, m, rect.transform);
-});
+[rect1, rect2].forEach(rect => rect.rotate( angle.toRadians() ) );
 
 table.draw(ctx);
 
@@ -72,49 +58,46 @@ var moves = Rx.Observable.fromEvent(document, "mousemove");
 var ups = Rx.Observable.fromEvent(document, "mouseup");
 
 
+
+
 downs.subscribe(down => {
     mouse = [down.pageX, down.pageY];
 
     hits = table.hitTest(...mouse);
 
-    var lastX = down.pageX;
-    var lastY = down.pageY;
+    var lastMouse = mouse;
 
     moves.takeUntil(ups).subscribe(move => {
         mouse = [move.pageX, move.pageY];
 
-        var lastMouseToMouse = [move.pageX - lastX, move.pageY - lastY];
-
         hits.forEach(function(hit) {
-            var centroid;
+            var centroid = hit.centroid;
 
-            //centroid = hit.centroid;
-            //var centroidToLastMouse = [move.pageX - centroid[0], move.pageY - centroid[1]];
-            //
-            //glMatrix.vec2.normalize(centroidToLastMouse, centroidToLastMouse);
-            //var dot = glMatrix.vec2.dot(lastMouseToMouse, centroidToLastMouse);
-            //var proj = glMatrix.vec2.scale([], centroidToLastMouse, dot);
-            //hit.translate(...proj);
+            // maintain the distance
+            // do the rotation first
+            // then figure out where the centroid should be
+            // then do the translation
 
-            centroid = hit.centroid;    // get the updated centroid
-            var a1 = Math.atan2(lastY - centroid[1], lastX - centroid[0]);
-            var a2 = Math.atan2(move.pageY - centroid[1], move.pageX - centroid[0]);
+            var a1 = Math.atan2(lastMouse[1] - centroid[1], lastMouse[0] - centroid[0]);
+            var a2 = Math.atan2(mouse[1] - centroid[1], mouse[0] - centroid[0]);
 
-            var [  ,  ,  ,  ,  tx, ty] = hit.transform;
-            var m = rotateAroundPoint([tx, ty], a1 - a2);
-            glMatrix.mat2d.mul(hit.transform, m, hit.transform);
+            var percent = 1.0;
+            hit.rotate(percent * (a1 - a2));
 
-            var prevDist = glMatrix.vec2.distance(centroid, [lastX, lastY]);
-            var currDist = glMatrix.vec2.distance(centroid, [move.pageX, move.pageY]);
+            var prevDist = glMatrix.vec2.distance(centroid, lastMouse);
+            var currDist = glMatrix.vec2.distance(centroid, mouse);
 
-            var centroidToMouse = [move.pageX - centroid[0], move.pageY - centroid[1]];
+            var centroidToMouse = [mouse[0] - centroid[0], mouse[1] - centroid[1]];
             glMatrix.vec2.normalize(centroidToMouse, centroidToMouse);
-            var proj = glMatrix.vec2.scale([], centroidToMouse, currDist - prevDist);
+            var proj = glMatrix.vec2.scale([], centroidToMouse, percent * (currDist - prevDist));
             hit.translate(...proj);
+
+            var delta = glMatrix.vec2.sub([], mouse, lastMouse);
+            glMatrix.vec2.scale(delta, delta, 1 - percent);
+            hit.translate(...delta);
         });
 
-        lastX = move.pageX;
-        lastY = move.pageY;
+        lastMouse = mouse;
     });
 
     ups.subscribe(up => {

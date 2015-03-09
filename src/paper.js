@@ -1,7 +1,7 @@
 import Rect from './rect'
 import Table from './table'
 
-export {
+export default {
     Rect,
     Table
 };

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+
+        body {
+            margin: 0;
+            background-color: gray;
+        }
+
+        canvas {
+            background-color: white;
+        }
+
+    </style>
+    <script src="../node_modules/rx/dist/rx.lite.min.js"></script>
+</head>
+<body>
+
+<canvas id="canvas" width="512" height="512"></canvas>
+
+</body>
+</html>
+<script>
+
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+
+    function distance(p1, p2) {
+        var dx = p2[0] - p1[0];
+        var dy = p2[1] - p1[1];
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function angle(p1, p2) {
+        var dx = p2[0] - p1[0];
+        var dy = p2[1] - p1[1];
+        return Math.atan2(dy, dx);
+    }
+
+    CanvasRenderingContext2D.prototype.circle = function(x,y,r) {
+        ctx.beginPath();
+        ctx.arc(x,y,r,0,2*Math.PI,false);
+        ctx.fill();
+    };
+
+    CanvasRenderingContext2D.prototype.line = function(x1,y1,x2,y2) {
+        ctx.beginPath();
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2,y2);
+        ctx.stroke();
+    };
+
+    var p1 = [200,200];
+    var p2 = [300,300];
+
+
+
+    function draw() {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0,0,512,512);
+
+        ctx.line(p1[0], p1[1], p2[0], p2[1]);
+        ctx.fillStyle = 'blue';
+        ctx.circle(p1[0], p1[1], 5);
+        ctx.fillStyle = 'red';
+        ctx.circle(p2[0], p2[1], 5);
+
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+
+    function eventToVector(event) {
+        return [event.pageX, event.pageY];
+    }
+
+    var downs = Rx.Observable.fromEvent(document, "mousedown").map(eventToVector);
+    var moves = Rx.Observable.fromEvent(document, "mousemove").map(eventToVector);
+    var ups = Rx.Observable.fromEvent(document, "mouseup").map(eventToVector);
+
+    var mouse;
+
+    downs.subscribe(function (down) {
+
+            p2 = down;
+
+            moves.takeUntil(ups).subscribe(function (move) {
+                var length = distance(p1, p2);
+                var a1 = angle(p1, p2);
+                var a2 = angle(p1, move);
+                p2 = move;
+
+                var percent = Math.max(0, 1 - Math.max(0, length - 100) / 100);
+                if (a1 * a2 < 0) {
+                    if (a1 < 0) {
+                        if (Math.abs(a1 + 2 * Math.PI - a2) < Math.abs(a1 - a2)) {
+                            a1 += 2 * Math.PI;
+                        }
+                    }
+                    if (a2 < 0) {
+                        if (Math.abs(a2 + 2 * Math.PI - a1) < Math.abs(a2 - a1)) {
+                            a2 += 2 * Math.PI;
+                        }
+                    }
+                }
+                var a = percent * a1 + (1 - percent) * a2;
+                p1 = [p2[0] - length * Math.cos(a), p2[1] - length * Math.sin(a)];
+            });
+    });
+
+</script>
